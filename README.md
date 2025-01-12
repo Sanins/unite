@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Before starting the development server, make sure to create a .env.local file in the root of your project with the following content:
+
+```bash
+    NEXT_PUBLIC_API_KEY=your-api-key-here
+```
+
 First, run the development server:
 
 ```bash
