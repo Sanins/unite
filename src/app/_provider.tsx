@@ -7,7 +7,7 @@ import {
 import { ReactNode } from "react";
 import { apiClient } from "../api/ApiClient";
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             queryFn: async ({ queryKey }) => {

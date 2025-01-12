@@ -5,19 +5,14 @@ import { YearRangeDropdown } from "@/components/yearRangeDropdown/yearRangeDropd
 import { useState } from "react";
 import { renderPositions } from "./utils/renderpositions";
 import * as Styled from './Page.style';
-
-const Spinner = () => (
-  <Styled.Overlay>
-    <div className="spinner"></div>
-  </Styled.Overlay>
-);
+import { Spinner } from "@/components/spinner/spinner";
 
 const ErrorMessage = ({ message }: { message: string }) => (
-  <Styled.Overlay>
+  <Styled.ErrorMsg>
     <div className="error-message">
       <p>{message}</p>
     </div>
-  </Styled.Overlay>
+  </Styled.ErrorMsg>
 );
 
 export default function Home() {
@@ -33,7 +28,7 @@ export default function Home() {
 
   return (
     <Styled.Wrapper>
-      {isLoading || eventLoading && <Spinner />}
+      {(isLoading || eventLoading) && <Spinner />}
       <Styled.Title>Formula 1 Event Schedule</Styled.Title>
       <YearRangeDropdown year={year} setYear={setYear} />
 

@@ -11,7 +11,7 @@ export function YearRangeDropdown({
     setYear: (year: string) => void;
     startYear?: number;
 }) {
-    const endYear = 2014;
+    const endYear = 2024;
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setYear(event.target.value);
