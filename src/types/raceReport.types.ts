@@ -70,5 +70,8 @@ export type Positions = {
 export type RaceReport = {
     report: {
         positions: Positions[];
+        racestrip: {
+            name: string;
+        }
     }
 };

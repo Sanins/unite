@@ -4,6 +4,21 @@ import { useScheduleQuery, useRaceReportQuery } from "@/api/queries";
 import { YearRangeDropdown } from "@/components/yearRangeDropdown/yearRangeDropdown";
 import { useState } from "react";
 import { renderPositions } from "./utils/renderpositions";
+import * as Styled from './Page.style';
+
+const Spinner = () => (
+  <Styled.Overlay>
+    <div className="spinner"></div>
+  </Styled.Overlay>
+);
+
+const ErrorMessage = ({ message }: { message: string }) => (
+  <Styled.Overlay>
+    <div className="error-message">
+      <p>{message}</p>
+    </div>
+  </Styled.Overlay>
+);
 
 export default function Home() {
   const [year, setYear] = useState("2024");
@@ -16,54 +31,58 @@ export default function Home() {
     setSelectedEventId(eventId);
   };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-
-  if (eventLoading) return <p>Loading...</p>;
-  if (eventError) return <p>Error: {eventError.message}</p>;
-
   return (
-    <div>
+    <Styled.Wrapper>
+      {isLoading || eventLoading && <Spinner />}
+      <Styled.Title>Formula 1 Event Schedule</Styled.Title>
       <YearRangeDropdown year={year} setYear={setYear} />
 
-      {Object.entries(data || {}).map(([date, events]) => (
-        <div key={date}>
-          <h2>{date}</h2>
-          {events.map((event) => {
-            const cvLink = "/f1/race/_/id/600041133";
-            const id = cvLink.split("/").pop() || '';
+      {error && <ErrorMessage message={`Error: ${error.message}`} />}
+      <Styled.Container>
+        <Styled.RaceWrapper>
+          {Object.entries(data || {}).map(([date, events]) => (
+            <div key={date}>
+              {events.map((event) => {
+                const cvLink = event.evLink;
+                const id = cvLink.split("/").pop() || '';
 
-            return (
-              <div key={event.evLink}>
-                <p>Winner: {event.winner}</p>
-                <p>Grand Prix: {event.gPrx}</p>
-                {id ? (
-                  <button onClick={() => handleEventClick(id)}>
-                    Find more about the event
-                  </button>
-                ) : (
-                  <p>Sorry no more info about this event</p>
-                )
-                }
-              </div>
-            )
-          })}
-        </div>
-      ))}
+                return (
+                  <Styled.RaceCard key={event.evLink}>
+                    <Styled.EventInfo>
+                      <p>Winner: {event.winner}</p>
+                      <p>Grand Prix: {event.gPrx}</p>
+                    </Styled.EventInfo>
+                    {id ? (
+                      <Styled.Button onClick={() => handleEventClick(id)}>
+                        Find more about the event
+                      </Styled.Button>
+                    ) : (
+                      <p>Sorry no more info about this event</p>
+                    )}
+                    {eventError && <ErrorMessage message={`Error: ${eventError.message}`} />}
 
-      {selectedEventId && eventData && (
-        <div>
-          <h3>Top 3 Positions for Race and Qualifying</h3>
-          <div>
-            <h4>Race Positions</h4>
-            {renderPositions(eventData.report.positions, "Race")}
-          </div>
-          <div>
-            <h4>Qualifying Positions</h4>
-            {renderPositions(eventData.report.positions, "Qualifying")}
-          </div>
-        </div>
-      )}
-    </div>
+                  </Styled.RaceCard>
+                );
+              })}
+            </div>
+          ))}
+        </Styled.RaceWrapper>
+
+
+        {selectedEventId && eventData && (
+          <Styled.EventDetails>
+            <Styled.Subtitle>Event: {eventData.report.racestrip.name}</Styled.Subtitle>
+            <Styled.PositionsContainer>
+              <Styled.PositionHeader>Top 3 Positions for Race</Styled.PositionHeader>
+              {renderPositions(eventData.report.positions, "Race")}
+            </Styled.PositionsContainer>
+            <Styled.PositionsContainer>
+              <Styled.PositionHeader>Top 3 Positions for Qualifying</Styled.PositionHeader>
+              {renderPositions(eventData.report.positions, "Qualifying")}
+            </Styled.PositionsContainer>
+          </Styled.EventDetails>
+        )}
+      </Styled.Container>
+    </Styled.Wrapper>
   );
 }
