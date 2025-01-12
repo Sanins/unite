@@ -1,95 +1,69 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useScheduleQuery, useRaceReportQuery } from "@/api/queries";
+import { YearRangeDropdown } from "@/components/yearRangeDropdown/yearRangeDropdown";
+import { useState } from "react";
+import { renderPositions } from "./utils/renderpositions";
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [year, setYear] = useState("2024");
+  const { data, error, isLoading } = useScheduleQuery(year);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+  const { data: eventData, error: eventError, isLoading: eventLoading } = useRaceReportQuery(selectedEventId);
+
+  const handleEventClick = (eventId: string) => {
+    setSelectedEventId(eventId);
+  };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  if (eventLoading) return <p>Loading...</p>;
+  if (eventError) return <p>Error: {eventError.message}</p>;
+
+  return (
+    <div>
+      <YearRangeDropdown year={year} setYear={setYear} />
+
+      {Object.entries(data || {}).map(([date, events]) => (
+        <div key={date}>
+          <h2>{date}</h2>
+          {events.map((event) => {
+            const cvLink = "/f1/race/_/id/600041133";
+            const id = cvLink.split("/").pop() || '';
+
+            return (
+              <div key={event.evLink}>
+                <p>Winner: {event.winner}</p>
+                <p>Grand Prix: {event.gPrx}</p>
+                {id ? (
+                  <button onClick={() => handleEventClick(id)}>
+                    Find more about the event
+                  </button>
+                ) : (
+                  <p>Sorry no more info about this event</p>
+                )
+                }
+              </div>
+            )
+          })}
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      ))}
+
+      {selectedEventId && eventData && (
+        <div>
+          <h3>Top 3 Positions for Race and Qualifying</h3>
+          <div>
+            <h4>Race Positions</h4>
+            {renderPositions(eventData.report.positions, "Race")}
+          </div>
+          <div>
+            <h4>Qualifying Positions</h4>
+            {renderPositions(eventData.report.positions, "Qualifying")}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
